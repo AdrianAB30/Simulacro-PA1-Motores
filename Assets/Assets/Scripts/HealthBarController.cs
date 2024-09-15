@@ -10,11 +10,17 @@ public class HealthBarController : MonoBehaviour
     [SerializeField] private RectTransform healthBar;
     [SerializeField] private RectTransform modifiedBar;
     [SerializeField] private float changeSpeed;
+    [SerializeField] UIManager uiManager;
+
+    private bool isDead = false;
 
     private int currentValue;
     private float _fullWidth;
     private float TargetWidth => currentValue * _fullWidth / maxValue;
     private Coroutine updateHealthBarCoroutine;
+
+    public delegate void HealthDepleted();
+    public event HealthDepleted OnHealthDepletedEvent;
 
     private void Start() {
         currentValue = maxValue;
@@ -26,12 +32,18 @@ public class HealthBarController : MonoBehaviour
     /// </summary>
     /// <param name="amount">El valor de vida modificada.</param>
     public void UpdateHealth(int amount){
+        if (isDead) return;
         currentValue = Mathf.Clamp(currentValue + amount, 0, maxValue);
 
         if(updateHealthBarCoroutine != null){
             StopCoroutine(updateHealthBarCoroutine);
         }
         updateHealthBarCoroutine = StartCoroutine(AdjustWidthBar(amount));
+
+        if (currentValue <= 0)
+        {
+            OnDeath();
+        }
     }
 
     IEnumerator AdjustWidthBar(int amount){
@@ -51,13 +63,21 @@ public class HealthBarController : MonoBehaviour
     private Vector2 SetWidth(RectTransform t, float width){
         return new Vector2(width, t.rect.height);
     }
+    public void ApplyDamage(int damageAmount)
+    {
+        UpdateHealth(-damageAmount); 
+    }
+    private void OnDeath()
+    {
 
-    private void Update() {
-
-        if(Input.GetMouseButtonDown(0)){
-            UpdateHealth(20);
-        }else if(Input.GetMouseButtonDown(1)){
-            UpdateHealth(-20);
+        if (!isDead) 
+        {
+            isDead = true; // Mark as dead
+            if (uiManager != null)
+            {
+                uiManager.AddScore(5);
+            }
+            OnHealthDepletedEvent?.Invoke();
         }
     }
 }

@@ -6,11 +6,14 @@ TagManager:
   tags:
   - PuntoA
   - PuntoB
+  - Enemy
+  - Bullet
+  - Enemy 2
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - 
